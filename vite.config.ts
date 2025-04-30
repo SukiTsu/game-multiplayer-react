@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/ws': {
-        target: 'ws://localhost:3001',  // Le port de ton serveur WebSocket
+        target: 'ws://https://game-multiplayer-react.vercel.app/',  // Le port de ton serveur WebSocket
         changeOrigin: true,
         ws: true,
       },

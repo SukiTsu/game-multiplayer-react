@@ -10,7 +10,7 @@ function App() {
   const socketRef = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const socket = new WebSocket('ws://localhost:3001');
+  const socket = new WebSocket('wss://game-multiplayer-react.onrender.com');
   socket.onopen = () => {
     console.log('✅ Connexion WebSocket ouverte');
   };
@@ -52,7 +52,7 @@ function App() {
   };
   
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:3001');
+    const socket = new WebSocket('wss://game-multiplayer-react.onrender.com');
     socketRef.current = socket;
 
 
