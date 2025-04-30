@@ -1,7 +1,8 @@
 import { WebSocketServer } from 'ws';
 
-const server = new WebSocketServer({ port: 3001 });
-console.log('✅ Serveur WebSocket lancé sur ws://localhost:3001');
+const port = process.env.PORT || 3001;
+const server = new WebSocketServer({ port });
+console.log('✅ Serveur WebSocket lancé sur wss://game:3001');
 
 const clients = new Set();
 
