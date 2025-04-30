@@ -1,27 +1,34 @@
+import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
-const port = process.env.PORT || 3001;
-const server = new WebSocketServer({ port });
-console.log('✅ Serveur WebSocket lancé sur wss://game:3001');
+const PORT = process.env.PORT || 3001;
 
-const clients = new Set();
+// Création du serveur HTTP
+const server = createServer();
 
-server.on('connection', (socket) => {
-  clients.add(socket);
+// Création du serveur WebSocket attaché au serveur HTTP
+const wss = new WebSocketServer({ server });
+
+// Écoute du serveur HTTP
+server.listen(PORT, () => {
+  console.log(`✅ Serveur WebSocket lancé sur port ${PORT}`);
+});
+
+wss.on('connection', (socket) => {
   console.log('🔌 Un joueur est connecté');
 
   socket.on('message', (data) => {
-    console.log('📨 Reçu:', data);
+    console.log('📨 Reçu:', data.toString());
 
-    for (const client of clients) {
+    // Re-transmet à tous les autres clients
+    wss.clients.forEach((client) => {
       if (client !== socket && client.readyState === socket.OPEN) {
         client.send(data);
       }
-    }
+    });
   });
 
   socket.on('close', () => {
-    clients.delete(socket);
     console.log('❌ Un joueur s\'est déconnecté');
   });
 });
