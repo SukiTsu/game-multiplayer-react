@@ -1,81 +1,78 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import LoginForm from './component/LoginForm';
 
-type Message = {
-  player: string;
-  text: string;
-};
-
+interface player {
+  pseudo:string
+  ready:boolean
+}
 
 function App() {
+  const [pseudo, setPseudo] = useState<string | null>(null);
+  const [players, setPlayers] = useState<player[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [ready, setReady] = useState<boolean>(false)
 
-  const socket = new WebSocket('wss://game-multiplayer-react.onrender.com');
-  socket.onopen = () => {
-    console.log('✅ Connexion WebSocket ouverte');
-  };
-  
-  socket.onmessage = (event) => {
-    let messageData = event.data;
-  
-    // Si le message est un Blob, on doit d'abord le convertir en texte
-    if (messageData instanceof Blob) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const json = JSON.parse(reader.result as string); // Le résultat est maintenant une chaîne de caractères
-          console.log('📨 Message reçu:', json);
-          // Traite ton message JSON ici
-        } catch (error) {
-          console.error('❌ Erreur lors du parsing JSON:', error);
-        }
-      };
-      reader.readAsText(messageData);
-    } else {
-      // Si c'est déjà une chaîne (et donc un JSON)
-      try {
-        const json = JSON.parse(messageData);
-        console.log('📨 Message reçu:', json);
-        // Traite ton message JSON ici
-      } catch (error) {
-        console.error('❌ Erreur lors du parsing JSON:', error);
-      }
-    }
-  };
-  
-  socket.onerror = (error) => {
-    console.error('❌ Erreur WebSocket:', error);
-  };
-  
-  socket.onclose = () => {
-    console.log('❌ Connexion WebSocket fermée');
-  };
   
   useEffect(() => {
-    const socket = new WebSocket('wss://game-multiplayer-react.onrender.com');
+    if (!pseudo) return;
+
+    const socket = new WebSocket('ws://localhost:3001');
     socketRef.current = socket;
 
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ type: 'join', pseudo }));
+    };
+
+    if (ready){
+      socket.send(JSON.stringify({ type: 'ready', pseudo }));
+    }
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'players') {
+          setPlayers(data.players);
+        }
+      } catch (err) {
+        console.error('❌ Erreur de parsing WebSocket:', err);
+      }
+    };
+
+    socket.onclose = () => {
+      console.log('❌ Déconnexion du serveur');
+    };
 
     return () => socket.close();
-  }, []);
-
-  const sendMessage = () => {
-    const msg = { player: 'Joueur', text: 'Hello !' };
-    socketRef.current?.send(JSON.stringify(msg));
-    setMessages((prev) => [...prev, msg]);
-  };
+  }, [pseudo]);
 
   return (
-    <div className="p-4">
-      <h1>Jeu Multijoueur - Test</h1>
-      <button onClick={sendMessage} className="mt-4">Envoyer un message</button>
-
-      <ul className="mt-6">
-        {messages.map((m, i) => (
-          <li key={i}>{m.player} : {m.text}</li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {!pseudo ? (
+        <LoginForm onLogin={(name) => setPseudo(name)} />
+      ) : (
+        <div className="container mt-5 text-center">
+          <h2>👋 Salut {pseudo} !</h2>
+          <button
+          className="btn btn-success"
+          onClick={() => {
+            setReady(true);
+            if (socketRef.current) {
+              socketRef.current.send(JSON.stringify({ type: 'ready', pseudo }));
+            }
+          }}
+        >
+          ✅ Je suis prêt
+        </button>
+          <h4 className="mt-4">Joueurs connectés :</h4>
+          <ul className="list-group mt-2">
+            {players.map((p, i) => (
+              <li key={i} className="list-group-item">{p.pseudo}({p.ready ? "Pret" : "Pas pret"})</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }
 
