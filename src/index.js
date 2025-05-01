@@ -36,11 +36,28 @@ wss.on('connection', (socket) => {
         broadcastPlayers();
       }
 
+      // Quand un joueur se mets prêt
       if (parsed.type === 'ready') {
         const player = clients.get(socket);
         if (player) {
           player.ready = true;
           broadcastPlayers();
+
+          const allReady = Array.from(clients.values()).every(p => p.ready);
+
+          // Si tout les joueurs sont prêt
+          if (allReady) {
+            console.log('✅ Tous les joueurs sont prêts !');
+            
+            // Envoit au coté client
+            for (const client of clients.keys()) {
+              if (client.readyState === client.OPEN) {
+                client.send(JSON.stringify({ type: 'allReady' }));
+              }
+            }
+            
+          }
+          
         }
       }
 
