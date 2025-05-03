@@ -28,7 +28,6 @@ const Lobby = ({ socket, onStartGame }: LobbyProps) => {
         }
 
         if (data.type === 'allReady') {
-          alert('🎉 Tous les joueurs sont prêts !');
           onStartGame()
         }
 

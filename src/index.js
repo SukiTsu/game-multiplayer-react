@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
-import LinkedList  from './component/LinkedList.js'
+import { getCompetenceList } from './component/serveur/competence/RadomCompetence.js';
+import { WaveCompetence } from './component/serveur/competence/WaveCompetence.js';
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer();
@@ -11,6 +12,11 @@ server.listen(PORT, () => {
 });
 
 const clients = new Map(); // socket => { pseudo }
+const waveCompetence = new WaveCompetence()
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function broadcastPlayers() {
   const players = Array.from(clients.values());
@@ -32,7 +38,7 @@ wss.on('connection', (socket) => {
 
       // Actions des joueurs
       if (parsed.type === 'join') {
-        clients.set(socket, { pseudo: parsed.pseudo, readu: parsed.false });
+        clients.set(socket, { pseudo: parsed.pseudo, ready: parsed.false });
         console.log(`👤 ${parsed.pseudo} a rejoint le jeu`);
         broadcastPlayers();
       }
@@ -50,23 +56,31 @@ wss.on('connection', (socket) => {
           if (allReady) {
             console.log('✅ Tous les joueurs sont prêts !');
             
-            const list = new LinkedList();
-            list.append("Joueur1");
-            list.append("Joueur2");
-            list.append("Joueur3");
-            
-            list.print(); // Affiche les pseudos
-            list.getIndice(0)
-            list.print()
             // Envoit au coté client
             for (const client of clients.keys()) {
               if (client.readyState === client.OPEN) {
                 client.send(JSON.stringify({ type: 'allReady' }));
+                async function startAction() { 
+                  console.log("⏳ Attente de 3 secondes...");
+                  waveCompetence.newWave(clients.size);
+                  await wait(3000)
+                  console.log("✅ Action exécutée !");
+                  client.send(JSON.stringify({ type: 'waveCompetence', waveCompetence }));
+                }
+                startAction()
+                
               }
             }
             
           }
           
+        }
+      }
+      if (parsed.type === 'competenceChoice') {
+        const nomCompetence = parsed.nomCompetence;
+        console.log("Compétence choisie :", nomCompetence);
+        for (const client of clients.keys()) {
+          client.send(JSON.stringify({ type: 'competenceChoice', nomCompetence }));
         }
       }
 

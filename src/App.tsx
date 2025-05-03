@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Lobby from './component/Lobby';
+import ComponentCompetence from './component/client/ComponentCompetence';
 
 function App() {
-  const [phase, setPhase] = useState<'lobby' | 'game'>('lobby');
+  const [phase, setPhase] = useState<'lobby' | 'competence'>('lobby');
   const [socketReady, setSocketReady] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
@@ -39,9 +40,9 @@ function App() {
         </div>
       )}
       {phase === 'lobby' && socketRef.current && socketReady && (
-        <Lobby socket={socketRef.current} onStartGame={() => setPhase('game')} />
+        <Lobby socket={socketRef.current} onStartGame={() => setPhase('competence')} />
       )}
-      {phase === 'game' && <div>🎮 Partie en cours...</div>}
+      {phase === 'competence' && socketRef.current && socketReady &&<ComponentCompetence socket={socketRef.current}/>}
     </>
   );
 }

@@ -14,6 +14,23 @@ class CompetenceBonus extends Competence {
         this.duree = duree;
     }
 
+    toJSON() {
+      return {
+        ...super.toJSON(),
+        duree: this.duree
+      };
+    }
+
+    static fromJSON(data) {
+      return new CompetenceBonus(
+        data.nom,
+        data.niveau,
+        data.delai,
+        data.duree,
+        data.effets
+      );
+    }
+
     getDescription() {
         return `${this.nom} (Niveau ${this.niveau}) : ${this.effets.map(e => e.description).join(', ')} pendant ${this.duree} tours (délais: ${this.delai} tours)`;
       }

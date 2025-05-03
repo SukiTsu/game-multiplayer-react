@@ -25,6 +25,26 @@ export class Competence {
     this.tourActive = 0;
   }
 
+  toJSON() {
+    return {
+      nom: this.nom,
+      niveau: this.niveau,
+      delai: this.delai,
+      effets: this.effets,
+      type: this.type
+    };
+  }
+
+  static fromJSON(data) {
+    return new Competence(
+      data.nom,
+      data.niveau,
+      data.delai,
+      data.effets,
+      data.type
+    );
+  }
+
   active(){
     if(this.tourActive !=0) return(`Activation impossible, encore ${this.tourActive} tours avant de pouvoir être utilisé`);
     this.tourActive = this.delai;

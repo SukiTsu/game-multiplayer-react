@@ -3,6 +3,7 @@ import { listDegat } from './CompetenceDegat.js';
 import { listSoin } from './CompetenceSoin.js';
 import { listBonus } from './CompetenceBonus.js';
 import { Competence } from './Competence.js';
+import LinkedList from '../../LinkedList.js';
 
 // Configuration des compétence selon le nombre de joueur
 const configData = [
@@ -45,13 +46,14 @@ const COMPETENCE_POOL = {
  * @returns {Competence[]} : liste de compétences distribuer aux joueurs
  */
 export function getCompetenceList(nbJoueur) {
+  console.log("Generate compétence");
   const config = configData.find(d => d.nbJoueur === nbJoueur);
   if (!config) throw new Error('❌ Configuration manquante');
 
   const totalToGenerate = nbJoueur * 2;
   const counts = { degat: 1, bonus: 0, soin: 0 };
 
-  const result= [];
+  const result = []
   const ComptenceDegat = COMPETENCE_POOL["degat"][Math.floor(Math.random() * COMPETENCE_POOL["degat"].length)];
   result.push(ComptenceDegat);
 
@@ -64,7 +66,6 @@ export function getCompetenceList(nbJoueur) {
     result.push(CompetenceClass);
     counts[type]++;
   }
-
   return result;
 }
 
@@ -78,7 +79,7 @@ function capitalize(str) {
 
 /*
 const allCompetences = getCompetenceList(2);
+console.log(allCompetences.size)
 allCompetences.forEach((c, i) => {
   console.log(`#${i + 1}: ${c.getDescription()}`);
-});
-*/
+});*/
