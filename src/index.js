@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import http from 'http';
+import LinkedList  from './component/LinkedList.js'
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer();
@@ -49,6 +50,14 @@ wss.on('connection', (socket) => {
           if (allReady) {
             console.log('✅ Tous les joueurs sont prêts !');
             
+            const list = new LinkedList();
+            list.append("Joueur1");
+            list.append("Joueur2");
+            list.append("Joueur3");
+            
+            list.print(); // Affiche les pseudos
+            list.getIndice(0)
+            list.print()
             // Envoit au coté client
             for (const client of clients.keys()) {
               if (client.readyState === client.OPEN) {
