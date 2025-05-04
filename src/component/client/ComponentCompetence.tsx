@@ -24,36 +24,50 @@ interface Competence {
   effets: Effet[];
 }
 
+interface WaveSend {
+  type: string;
+  sousType:string
+  value:string;
+}
+
 
 const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
   const [competences, setCompetences] = useState<Competence[]>([]);
 
   useEffect(() => {
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      const { type, payload } = JSON.parse(event.data);
 
-      if (data.type === 'waveCompetence') {
-        console.log('✅ Compétences reçues :', data.waveCompetence.listCompetence); // ← ICI
-        setCompetences(data.waveCompetence.listCompetence);
-      }
-      if (data.type === 'competenceChoice') {
-        const nom = data.nomCompetence;
-        console.log('✅ Compétences choisie par un utilisateur :', nom);
-        setCompetences((prev) => {
-          const index = prev.findIndex(c => c.nom === nom);
-          if (index !== -1) {
-            const clone = [...prev];
-            clone.splice(index, 1);
-            return clone;
-          }
-          return prev;
-        });
+      switch (type) {
+        case 'toClientGetCompetence':
+          setCompetences(payload.competences);
+          break;
+    
+        case 'toClientChoiceCompetence':
+          const { nomCompetence } = payload;
+          console.log("Un utilisateur a choisi: "+nomCompetence)
+          setCompetences(prev => {
+            const index = prev.findIndex(c => c.nom === nomCompetence);
+            if (index !== -1) {
+              const clone = [...prev];
+              clone.splice(index, 1); // Supprime une occurrence
+              return clone;
+            }
+            return prev;
+          });
+          break;
       }
     };
   }, [socket]);
   
-  const handleChoice = ({ nomCompetence }: { nomCompetence: string }) => {
-    socket.send(JSON.stringify({ type: 'competenceChoice', nomCompetence }));
+  const handleChoice = (nomCompetence: string) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'toServeurWaveCompetence',
+        payload: { nomCompetence },
+        meta : { sousTitre : "toServeurCompetenceChoice" }
+      }));
+    }
   };
   
 
@@ -69,7 +83,7 @@ const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
                 <li key={j}>{e.description}</li>
               ))}
             </ul>
-            <button onClick={() => handleChoice({ nomCompetence: c.nom })}>Selectionner</button>
+            <button onClick={() => handleChoice(c.nom)}>Selectionner</button>
           </li>
         ))}
       </ul>

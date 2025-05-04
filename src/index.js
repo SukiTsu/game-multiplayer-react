@@ -35,6 +35,7 @@ wss.on('connection', (socket) => {
   socket.on('message', (data) => {
     try {
       const parsed = JSON.parse(data);
+      const { type, payload, meta } = parsed;
 
       // Actions des joueurs
       if (parsed.type === 'join') {
@@ -57,15 +58,18 @@ wss.on('connection', (socket) => {
             console.log('✅ Tous les joueurs sont prêts !');
             
             // Envoit au coté client
+            waveCompetence.newWave(clients.size);
+            const competences = waveCompetence.getCompetenceList();
+            const payload = { competences };
             for (const client of clients.keys()) {
               if (client.readyState === client.OPEN) {
                 client.send(JSON.stringify({ type: 'allReady' }));
                 async function startAction() { 
                   console.log("⏳ Attente de 3 secondes...");
-                  waveCompetence.newWave(clients.size);
+
                   await wait(3000)
                   console.log("✅ Action exécutée !");
-                  client.send(JSON.stringify({ type: 'waveCompetence', waveCompetence }));
+                  client.send(JSON.stringify({ type: 'toClientGetCompetence', payload }));
                 }
                 startAction()
                 
@@ -76,12 +80,8 @@ wss.on('connection', (socket) => {
           
         }
       }
-      if (parsed.type === 'competenceChoice') {
-        const nomCompetence = parsed.nomCompetence;
-        console.log("Compétence choisie :", nomCompetence);
-        for (const client of clients.keys()) {
-          client.send(JSON.stringify({ type: 'competenceChoice', nomCompetence }));
-        }
+      if (parsed.type === 'toServeurWaveCompetence') {
+        waveCompetence.run(payload, meta, clients);
       }
 
 
