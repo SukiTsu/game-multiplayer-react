@@ -24,15 +24,14 @@ interface Competence {
   effets: Effet[];
 }
 
-interface WaveSend {
-  type: string;
-  sousType:string
-  value:string;
+interface Player {
+  pseudo: string;
+  competences: Competence[]
 }
-
 
 const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
   const [competences, setCompetences] = useState<Competence[]>([]);
+  const [player, setPlayer] = useState<Player[]>([]);
 
   useEffect(() => {
     socket.onmessage = (event) => {
@@ -63,9 +62,8 @@ const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
   const handleChoice = (nomCompetence: string) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({
-        type: 'toServeurWaveCompetence',
-        payload: { nomCompetence },
-        meta : { sousTitre : "toServeurCompetenceChoice" }
+        type: 'toServeurCompetenceChoice',
+        payload: { nomCompetence }
       }));
     }
   };

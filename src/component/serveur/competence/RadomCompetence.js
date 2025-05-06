@@ -45,7 +45,7 @@ const COMPETENCE_POOL = {
  * @param {number} nbJoueur : nombre de joueur 
  * @returns {Competence[]} : liste de compétences distribuer aux joueurs
  */
-export function getCompetenceList(nbJoueur) {
+export function getRandomCompetenceList(nbJoueur) {
   console.log("Generate compétence");
   const config = configData.find(d => d.nbJoueur === nbJoueur);
   if (!config) throw new Error('❌ Configuration manquante');

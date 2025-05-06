@@ -28,6 +28,7 @@ const Lobby = ({ socket, onStartGame }: LobbyProps) => {
         }
 
         if (data.type === 'allReady') {
+          socket.send(JSON.stringify({ type: 'change-phase' }));
           onStartGame()
         }
 

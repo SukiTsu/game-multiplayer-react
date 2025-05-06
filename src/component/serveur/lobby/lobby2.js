@@ -1,6 +1,7 @@
 // lobby.js
 
 import { servData } from "../../../index.js";
+import { Player } from "../../utils/player.js";
 
 export class LobbyPhase {
   constructor(changePhase) {
@@ -10,19 +11,23 @@ export class LobbyPhase {
   handleMessage(socket, parsed) {
     if (parsed.type === 'join') {
       const pseudo = parsed.pseudo || 'Anonyme';
-      servData.clients.set(socket, { pseudo: parsed.pseudo, ready: parsed.false });
+      const player = new Player(pseudo);
+      servData.clients.set(socket, { player : player });
+      console.log(player)
       console.log(`👤 ${pseudo} a rejoint le jeu`);
       this.broadcastPlayers();
     }
 
     if (parsed.type === 'ready') {
-      const player = servData.clients.get(socket);
+      const socketPlayer = servData.clients.get(socket);
+      const player = socketPlayer.player
+      console.log(player)
       if (player) {
-        player.ready = true;
+        player.setReady();
         console.log(player.pseudo+" est prêt!")
         this.broadcastPlayers();
 
-        const allReady = Array.from(servData.clients.values()).every(p => p.ready);
+        const allReady = Array.from(servData.clients.values()).every(p => p.player.ready);
         if (allReady) {
 
           console.log('✅ Tous les joueurs sont prêts !');
