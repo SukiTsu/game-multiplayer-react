@@ -26,20 +26,21 @@ interface Competence {
 
 interface Player {
   pseudo: string;
-  competences: Competence[]
+  listCompetence: Competence[]
 }
 
 const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
   const [competences, setCompetences] = useState<Competence[]>([]);
-  const [player, setPlayer] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     socket.onmessage = (event) => {
       const { type, payload } = JSON.parse(event.data);
-
       switch (type) {
         case 'toClientGetCompetence':
           setCompetences(payload.competences);
+          setPlayers(payload.players)
+          console.log(payload);
           break;
     
         case 'toClientChoiceCompetence':
@@ -82,6 +83,24 @@ const ComponentCompetence:React.FC<CompetenceProps> = ({ socket }) => {
               ))}
             </ul>
             <button onClick={() => handleChoice(c.nom)}>Selectionner</button>
+          </li>
+        ))}
+      </ul>
+      <h2>Liste des joueurs: </h2>
+      <ul>
+        {players.map((p, i) => (
+          <li key={i}>
+            <strong>{p.pseudo}</strong>
+            <ul>
+              {p.listCompetence && 
+                <>
+                {p.listCompetence.map((e, j) => (
+                  <li key={j}>{e.nom}</li>
+                ))}
+                </>
+              }
+              
+            </ul>
           </li>
         ))}
       </ul>

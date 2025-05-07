@@ -40,7 +40,7 @@ wss.on('connection', (socket) => {
     if (servData.phase === GamePhase.LOBBY) {
       lobby.handleMessage(socket, parsed)
     } else if (servData.phase === GamePhase.COMPETENCE) {
-      competence.handleChoice(parsed);
+      competence.handleChoice(socket,parsed);
     }
   } catch (err) {
     console.error('❌ Erreur de parsing:', err);

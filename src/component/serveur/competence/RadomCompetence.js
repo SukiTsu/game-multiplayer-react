@@ -59,7 +59,7 @@ export function getRandomCompetenceList(nbJoueur) {
 
   while (result.length < totalToGenerate) {
     const type = randomType(['degat', 'bonus', 'soin']);
-    if (counts[type] <= config[`nbMax${type}`]) continue;
+    if (counts[type] < config[`nbMax${type}`]) continue;
 
     const pool = COMPETENCE_POOL[type];
     const CompetenceClass = pool[Math.floor(Math.random() * pool.length)];

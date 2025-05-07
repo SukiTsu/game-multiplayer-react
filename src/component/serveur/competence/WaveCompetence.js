@@ -1,6 +1,7 @@
 // competence.js
 
 import { servData } from '../../../index.js';
+import { getPlayerPseudoComptence, getPlayerSocket } from '../../utils/utils.js';
 import { getRandomCompetenceList } from './RadomCompetence.js';
 
 export class CompetencePhase {
@@ -11,7 +12,10 @@ export class CompetencePhase {
   }
 
   sendCompetences() {
-    const payload = { competences: this.competenceList };
+    const payload = { 
+      competences: this.competenceList, 
+      players: getPlayerPseudoComptence()
+    };
     for (const client of servData.clients.keys()) {
       if (client.readyState === client.OPEN) {
         client.send(JSON.stringify({ type: 'toClientGetCompetence', payload }));
@@ -19,7 +23,7 @@ export class CompetencePhase {
     }
   }
 
-  handleChoice(parsed) {
+  handleChoice(socket,parsed) {
     if (!this.init){
       this.competenceList = getRandomCompetenceList(servData.clients.size);
       console.log("🧠 Liste des compétences initialisée:", this.competenceList.map(c => c.nom));
@@ -28,12 +32,15 @@ export class CompetencePhase {
     }
     if (parsed.type === "toServeurCompetenceChoice"){
       const { payload } = parsed;
+      const socketPlayer = servData.clients.get(socket); // {socket, {player: ...}}
+      const player = socketPlayer.player;
       const nomCompetence = payload.nomCompetence;
       console.log("reception: "+nomCompetence);
       const index = this.competenceList.findIndex(c => c.nom === nomCompetence);
-      if (index !== -1) {
+      if (index !== -1 && player.canAddCompetence()) {
+        player.addCompetence(this.competenceList[index])
         const [removed] = this.competenceList.splice(index, 1);
-        console.log(`🗑️ Compétence "${removed.nom}"`);
+        console.log(`${player.pseudo} a choisie: "${removed.nom}"}}`);
         this.sendCompetences();
         if (this.competenceList.length === 0){
           this.init = false;

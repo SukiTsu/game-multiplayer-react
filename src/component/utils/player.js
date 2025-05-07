@@ -17,6 +17,9 @@ export class Player{
         }
         this.listCompetence.push(competence);
     }
+    canAddCompetence(){
+        return (this.listCompetence.length < 2);
+    }
     useCompetence(nameCompetence){
 
     }

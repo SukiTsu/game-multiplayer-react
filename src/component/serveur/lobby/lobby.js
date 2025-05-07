@@ -1,6 +1,8 @@
 // lobby.js
 
 import { servData } from "../../../index.js";
+import { Player } from "../../utils/player.js";
+import { getPlayerSocket } from "../../utils/utils.js";
 
 export class LobbyPhase {
   constructor(changePhase) {
@@ -10,19 +12,21 @@ export class LobbyPhase {
   handleMessage(socket, parsed) {
     if (parsed.type === 'join') {
       const pseudo = parsed.pseudo || 'Anonyme';
-      servData.clients.set(socket, { pseudo: parsed.pseudo, ready: parsed.false });
+      const player = new Player(pseudo)
+      servData.clients.set(socket, { player: player });
       console.log(`👤 ${pseudo} a rejoint le jeu`);
       this.broadcastPlayers();
     }
 
     if (parsed.type === 'ready') {
-      const player = servData.clients.get(socket);
-      if (player) {
-        player.ready = true;
+      const socketPlayer = servData.clients.get(socket);
+      if (socketPlayer) {
+        const player = socketPlayer.player;
+        player.setReady();
         console.log(player.pseudo+" est prêt!")
         this.broadcastPlayers();
 
-        const allReady = Array.from(servData.clients.values()).every(p => p.ready);
+        const allReady = Array.from(servData.clients.values()).every(p => p.player.ready);
         if (allReady) {
 
           console.log('✅ Tous les joueurs sont prêts !');
@@ -35,7 +39,7 @@ export class LobbyPhase {
   }
 
   broadcastPlayers() {
-    const players = Array.from(servData.clients.values());
+    const players = getPlayerSocket();
     const message = JSON.stringify({ type: 'players', players });
 
     for (const client of servData.clients.keys()) {
