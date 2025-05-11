@@ -2,7 +2,8 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 import { LobbyPhase } from './component/serveur/lobby/lobby.js';
 import { GamePhase } from './component/utils/enum.js';
-import { CompetencePhase } from './component/serveur/competence/WaveCompetence.js';
+import { CompetencePhase } from './component/serveur/competence/CompetencePhase.js';
+import { PierrePapierCiseauPhase } from './component/serveur/mini-jeux/PierreParpierCiseauPhase.js';
 
 const PORT = process.env.PORT || 3001;
 const server = http.createServer();
@@ -18,6 +19,7 @@ server.listen(PORT, () => {
 
 const lobby = new LobbyPhase(GamePhase.COMPETENCE);
 const competence = new CompetencePhase(GamePhase.MINIGAME)
+const pierrePapierCiseau = new PierrePapierCiseauPhase(GamePhase.COMBAT);
 
 function updatePhase(newPhase) {
   phase = newPhase;
@@ -40,7 +42,10 @@ wss.on('connection', (socket) => {
     if (servData.phase === GamePhase.LOBBY) {
       lobby.handleMessage(socket, parsed)
     } else if (servData.phase === GamePhase.COMPETENCE) {
-      competence.handleChoice(socket,parsed);
+      //competence.handleChoice(socket,parsed);
+      pierrePapierCiseau.handleMessage(socket,parsed);
+    } else if (servData.phase === GamePhase.MINIGAME){
+      console.log("test");
     }
   } catch (err) {
     console.error('❌ Erreur de parsing:', err);

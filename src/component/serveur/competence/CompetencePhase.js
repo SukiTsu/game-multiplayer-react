@@ -1,35 +1,59 @@
-/*
-import { getCompetenceList } from './RadomCompetence.js';
+// competence.js
 
-class CompetencePhase {
-  constructor(nbJoueurs) {
-    this.nbJoueurs = nbJoueurs;
-    this.competenceList = getCompetenceList(nbJoueurs); // 2 compétences * nbJoueurs
-    this.choixJoueurs = new Map(); // socket => nomCompétence
+import { servData } from '../../../index.js';
+import { getPlayerPseudoComptence, getPlayerSocket } from '../../utils/utils.js';
+import { getRandomCompetenceList } from './RadomCompetence.js';
+
+export class CompetencePhase {
+  constructor(changeEtat) {
+    this.changeEtat = changeEtat;
+    this.init = false
+    this.competenceList = [];
   }
 
-  getCompetences() {
-    return this.competenceList;
-  }
-
-  enregistrerChoix(socket, nomCompetence) {
-    const index = this.competenceList.findIndex(c => c.nom === nomCompetence);
-    if (index !== -1) {
-      this.competenceList.splice(index, 1); // retire UNE occurrence
-      this.choixJoueurs.set(socket, nomCompetence);
-      return true;
+  sendCompetences() {
+    const payload = { 
+      competences: this.competenceList, 
+      players: getPlayerPseudoComptence()
+    };
+    for (const client of servData.clients.keys()) {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify({ type: 'toClientGetCompetence', payload }));
+      }
     }
-    return false;
   }
 
-  tousOntChoisi() {
-    return this.choixJoueurs.size === this.nbJoueurs;
+  handleChoice(socket,parsed) {
+    if (!this.init){
+      this.competenceList = getRandomCompetenceList(servData.clients.size);
+      console.log("🧠 Liste des compétences initialisée:", this.competenceList.map(c => c.nom));
+      this.init = true;
+      this.sendCompetences();
+    }
+    if (parsed.type === "toServeurCompetenceChoice"){
+      const { payload } = parsed;
+      const socketPlayer = servData.clients.get(socket); // {socket, {player: ...}}
+      const player = socketPlayer.player;
+      const nomCompetence = payload.nomCompetence;
+      console.log("reception: "+nomCompetence);
+      const index = this.competenceList.findIndex(c => c.nom === nomCompetence);
+      if (index !== -1 && player.canAddCompetence()) {
+        player.addCompetence(this.competenceList[index])
+        const [removed] = this.competenceList.splice(index, 1);
+        console.log(`${player.pseudo} a choisie: "${removed.nom}"}}`);
+        this.sendCompetences();
+        if (this.competenceList.length === 0){
+          this.init = false;
+          console.log("Fin des compétences");
+          servData.phase = this.changeEtat;
+        }
+      }
+    }
   }
 
-  getChoixJoueurs() {
-    return Array.from(this.choixJoueurs.entries()).map(([socket, nom]) => ({ socket, nom }));
+  getCompetenceList() {
+    return this.competenceList;
   }
 }
 
-export default { CompetencePhase };
-*/
+export default new CompetencePhase();

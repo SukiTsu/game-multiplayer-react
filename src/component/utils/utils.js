@@ -12,3 +12,6 @@ export function getPlayerPseudoComptence(){
         listCompetence: p.player.listCompetence
       }))
 }
+export function getPlayerSpeudo(){
+    return Array.from(servData.clients.values()).map((p) => p.player.pseudo) 
+}

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Lobby from './component/Lobby';
 import ComponentCompetence from './component/client/ComponentCompetence';
+import CaptureGame from './component/client/MiniJeux';
+import ComponentPierrePapierCiseau from './component/client/mini-jeux/PierrePapierCiseaux';
 
 function App() {
   const [phase, setPhase] = useState<'lobby' | 'competence'>('lobby');
@@ -42,7 +44,7 @@ function App() {
       {phase === 'lobby' && socketRef.current && socketReady && (
         <Lobby socket={socketRef.current} onStartGame={() => setPhase('competence')} />
       )}
-      {phase === 'competence' && socketRef.current && socketReady &&<ComponentCompetence socket={socketRef.current}/>}
+      {phase === 'competence' && socketRef.current && socketReady &&<ComponentPierrePapierCiseau socket={socketRef.current}/>}
     </>
   );
 }
